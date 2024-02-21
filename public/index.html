@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Socket.IO Chat</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            margin: 0;
+            padding: 0;
+        }
+
+        #usernameDiv {
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        #chatContainer {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #messages {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            overflow-y: scroll;
+            max-height: 400px;
+            padding: 10px;
+        }
+
+        .messageContainer {
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .message.sender {
+            background-color: #DCF8C6;
+            float: left;
+        }
+
+        .message.receiver {
+            background-color: #E5E5EA;
+            float: right;
+        }
+
+        .message.sender .messageContent {
+            margin-left: 10px;
+        }
+
+        .message.receiver .messageContent {
+            margin-right: 10px;
+        }
+
+        .messageContent {
+            padding: 10px;
+            border-radius: 20px;
+            max-width: 70%;
+            word-wrap: break-word;
+            clear: both;
+            position: relative;
+        }
+
+        .message .username {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        #input {
+            width: calc(100% - 100px);
+            border: none;
+            padding: 10px;
+            border-radius: 20px;
+            margin: 10px;
+            outline: none;
+        }
+
+        #emojiButton {
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            width: 70px;
+            margin-right: 10px;
+        }
+
+        #emojiButton:hover {
+            background-color: #45a049;
+        }
+
+        button {
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="usernameDiv">
+        <input id="usernameInput" autocomplete="off" placeholder="Enter your name"/><button id="setUsernameBtn">Set Name</button>
+    </div>
+    <div id="chatContainer" style="display: none;">
+        <ul id="messages"></ul>
+        <form id="form" action="">
+            <input id="input" autocomplete="off" placeholder="Type a message"/><button>Send</button>
+        </form>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        var socket = io();
+        var usernameDiv = document.getElementById('usernameDiv');
+        var chatContainer = document.getElementById('chatContainer');
+        var setUsernameBtn = document.getElementById('setUsernameBtn');
+        var usernameInput = document.getElementById('usernameInput');
+        var form = document.getElementById('form');
+        var input = document.getElementById('input');
+
+        setUsernameBtn.addEventListener('click', function() {
+            var username = usernameInput.value.trim();
+            if (username) {
+                socket.emit('set username', username);
+                usernameDiv.style.display = 'none';
+                chatContainer.style.display = 'block';
+            }
+        });
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (input.value) {
+                socket.emit('chat message', input.value);
+                input.value = '';
+            }
+        });
+
+        socket.on('chat message', function(data) {
+            var item = document.createElement('li');
+            var className = data.user === 'Me' ? 'sender' : 'receiver';
+            item.className = 'messageContainer';
+            item.innerHTML = '<div class="message ' + className + '"><div class="messageContent"><span class="username">' + data.user + '</span>: ' + data.message + '</div></div>';
+            document.getElementById('messages').appendChild(item);
+        });
+    </script>
+</body>
+</html>
